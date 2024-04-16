@@ -1,91 +1,104 @@
-// função do número Aleatório //
 function randomRange(min, max) {
-    return Math.random () * (max - min) + min;
-}
+    return Math.random() * (max - min) + min;
+  }
+  
+  function lerp(a, b, t) {
 
-function lerp(a, b, t){
-    return a + (b - a) * t
-}
+    return a + (b - a) * t;
+  }
+  
 
-class Neuron {
+  class Neuron {
     constructor(inputs) {
-        this.bias = randomRange (-1, 1);
-
-        this.weightList = new Array (inputs)
+      
+      this.bias = randomRange(-1, 1);
+      
+      this.weightList = new Array(inputs)
         .fill()
-        .map(() => randomRange(-1, 1))
+        .map(() => randomRange(-1, 1));
+    };
+
+    g(signalList = []) {
+      let u = 0;
+  
+      for (let i = 0; i < this.weightList.length; i++) {
+        u += signalList[i] * this.weightList[i];
+      }
+  
+      if (Math.tanh(u) > this.bias) return 1; // Ativado
+      else return 0; // Não ativado
     }
-};
+  
 
-g(signalList = []); {
-    let u = 0;
+    mutate(rate = 0.2) {
+      this.weightList = this.weightList.map((w) => {
 
-    for (let i = 0; i < this.weightList.lenght; i++){
-        u += signalList [i] * this.weightList[i]
+        return lerp(w, randomRange(-1, 1), rate);
+      });
+
+      this.bias = lerp(this.bias, randomRange(-1, 1), rate);
     }
+  }
+  
 
-    if (Math.tanh(u) > this.bias) return 1; // Verdadeiro = Ativado
-    else return 0; // Falso = Desativado
-};
+  class RNA {
+    constructor(inputCount = 1, levelList = []) {
 
-mutate (rate = 1); {
-    this.weightList = this.weightList.map(() => {
-        return lerp(w, randomRange(-1, 1), rate)
-    });
+      this.score = 0;
+  
 
-    this.bias = lerp(this.bias, randomRange(-1, 1), range)
-}
+      this.levelList = levelList.map((l, i) => {
 
-class RNA{
-    constructor(inputCount = 1, levelList = []){
-        this.score = 0;
+        const inputSize = i === 0 ? inputCount : levelList[i - 1];
 
-        this.levelList = levelList.map((l, i) => {
-            const inputSize = i === 0 ? inputCount : levelList[i - 1]
-
-            return new Array(l).fill().map(() => new Neuron(inputSize));
-        });
+        return new Array(l).fill().map(() => new Neuron(inputSize));
+      });
     }
+  
+    
+  
 
-    compute(list = []){
-        for (let i = 0; i < this.levelList.length; i++){
-            const tempList = []
+    compute(list = []) {
+      for (let i = 0; i < this.levelList.length; i++) {
+        const tempList = [];
 
-            for (const neuron of this.levelList[i]){
-                if (list.length !== neuron.weightList.length) throw new Error("Entrada inválida");
-                tempList.push(neuron.g(list))
-            }
-            list = tempList;
+        for (const neuron of this.levelList[i]) {
+          if (list.length !== neuron.weightList.length) throw new Error('Entrada inválida');
+          tempList.push(neuron.g(list));
         }
-        return list;
+        list = tempList; 
+      }
+      return list;
     }
-}
 
-mutate(rate = 1);{
-    for (const level of this.levelList){
-        for (const neuron of level) neuron.mutate(rate)
+    mutate(rate = 1) {
+      for (const level of this.levelList) {
+        for (const neuron of level) neuron.mutate(rate);
+      }
     }
-}
 
-load(rna);{
-    if (!rna) return;
-    try{
+    load(rna) {
+      if (!rna) return;
+      try {
         this.levelList = rna.map((neuronList) => {
-            return neuronList.map((neuron) => {
-                const n  = new Neuron();
-                n.bias = neuron.bias
-                n.weightList = neuron.weightList;
+          
+          return neuronList.map((neuron) => {
 
-                return n;
-            });
+            const n = new Neuron();
+            n.bias = neuron.bias;
+            n.weightList = neuron.weightList;
+
+            return n;
+          });
         });
-    } catch (e){
+      } catch (e) {
+        
         return;
+      }
     }
-
-    save(); {
-        return this.levelList;
+  
+    save() {
+      return this.levelList;
     }
-}
-
-export default RNA;
+  }
+  export default RNA;
